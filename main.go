@@ -65,9 +65,7 @@ func main() {
 	log.Println("Passed all checks, starting watcher now!")
 
 	// setup scheduler
-	// new stuff
-	// tick := time.NewTicker(time.Minute)
-	tick := time.NewTicker(time.Second * 10)
+	tick := time.NewTicker(time.Minute)
 	go scheduler(tick, c)
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
