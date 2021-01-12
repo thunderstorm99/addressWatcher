@@ -88,25 +88,61 @@ func scheduler(tick *time.Ticker, c config) error {
 }
 
 func task(c config, previousAmount float64) float64 {
-	amount, err := parseAmount(c)
+	b, err := checkAPI()
 	if err != nil {
-		log.Fatalf("can't parse amount, error is: %s\n", err)
+		log.Fatalln(err)
 	}
 
-	previousAmount, err = compareAmount(previousAmount, amount, c)
-	if err != nil {
-		log.Fatalf("can't compare amount, error is: %s\n", err)
+	if b == true {
+		amount, err := parseAmount(c)
+		if err != nil {
+			log.Fatalf("can't parse amount, error is: %s\n", err)
+		}
+
+		previousAmount, err = compareAmount(previousAmount, amount, c)
+		if err != nil {
+			log.Fatalf("can't compare amount, error is: %s\n", err)
+		}
+	} else {
+		log.Println("API seems down. Skipping this round")
 	}
 	return previousAmount
 }
 
+func checkAPI() (bool, error) {
+	url := "https://chainz.cryptoid.info/explorer/api.dws?q=summary"
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return false, fmt.Errorf("can't request %s, error is: %s", url, err)
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	// request response
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return false, fmt.Errorf("HTTPS request to url %s failed with error %s", url, err)
+	}
+	// read response into data variable
+	data, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return false, fmt.Errorf("can't read body %s, error is %s", response.Body, err)
+	}
+
+	if len(data) > 100 {
+		// API available
+		return true, nil
+	}
+	// API not available
+	return false, nil
+}
+
 func parseAmount(c config) (float64, error) {
 	// Define Variables
-	var url string
 	var amount float64
 
 	// assemble url
-	url = "https://chainz.cryptoid.info/" + c.coin + "/api.dws?q=getbalance&a=" + c.address + "&key=" + c.apiKey
+	url := "https://chainz.cryptoid.info/" + c.coin + "/api.dws?q=getbalance&a=" + c.address + "&key=" + c.apiKey
 
 	// form url
 	request, err := http.NewRequest(http.MethodGet, url, nil)
