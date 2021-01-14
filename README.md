@@ -35,10 +35,3 @@ This program can be used to track rewards for a masternode. If you put in the ad
 
 ### Monitoring a donation address
 If you have an address where people can donate cryptocurrency to, you can leave this program running to be alerted of any incoming donations
-
-
-## Known issues
-
-### API goes down
-From time to time the API does not respond, or goes into maintenance mode. If this happens, the API responds with an amount of 0. My program will pick this up and think of it as a withdrawal of all funds.
-I need to find a way to check the API's readyness first.
